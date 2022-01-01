@@ -1,11 +1,7 @@
 package hcmus.java;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import hcmus.java.Model.*;
+import java.util.*;
 
 /**
  * hcmus.java
@@ -14,9 +10,7 @@ import hcmus.java.Model.*;
  * Description: ...
  */
 public class Slang {
-    private Trie trie;
-    private HashMap<String, ArrayList<String>> Forward;
-    private HashMap<String, ArrayList<String>> Backward;
+    private HashMap<String, ArrayList<String>> Dict;
     private ArrayList<String> History = new ArrayList<>();
     public static Slang instance;
     public static Slang getInstance() {
@@ -26,9 +20,7 @@ public class Slang {
         return instance;
     }
     private Slang() {
-        Forward = new HashMap<>();
-        Backward = new HashMap<>();
-        trie = new Trie();
+        Dict = new HashMap<>();
     }
 
     public void LoadData(String filename) {
@@ -49,22 +41,10 @@ public class Slang {
                 if (arr.length == 2) {
                     String key = arr[0];
                     String[] definition = arr[1].split("\\| ");
-                    trie.insert(key);
-                    if (Forward.containsKey(key)) {
-                        Forward.get(key).addAll(List.of(definition));
+                    if (Dict.containsKey(key)) {
+                        Dict.get(key).addAll(List.of(definition));
                     } else {
-                        Forward.put(key, new ArrayList<>(List.of(definition)));
-                    }
-                    for (String s : definition) {
-                        String[] words = s.split(" ");
-                        for (String word : words) {
-                            if (Backward.containsKey(word)) {
-                                Backward.get(word).add(key);
-                            }
-                            else {
-                                Backward.put(word, new ArrayList<>(List.of(key)));
-                            }
-                        }
+                        Dict.put(key, new ArrayList<>(List.of(definition)));
                     }
                 }
             }
@@ -81,8 +61,8 @@ public class Slang {
                 file.createNewFile();
             }
             BufferedWriter bw = new BufferedWriter(new FileWriter(file));
-            for (String key : Forward.keySet()) {
-                ArrayList<String> definition = Forward.get(key);
+            for (String key : Dict.keySet()) {
+                ArrayList<String> definition = Dict.get(key);
                 StringBuilder sb = new StringBuilder();
                 for (String s : definition) {
                     sb.append(s).append("| ");
@@ -96,11 +76,8 @@ public class Slang {
         }
     }
 
-    public HashMap<String, ArrayList<String>> getForward() {
-        return Forward;
-    }
-    public HashMap<String, ArrayList<String>> getBackward() {
-        return Backward;
+    public HashMap<String, ArrayList<String>> getDict() {
+        return Dict;
     }
     public ArrayList<String> getHistory() {
         return History;
@@ -116,6 +93,7 @@ public class Slang {
             BufferedWriter bw = new BufferedWriter(new FileWriter(file));
             for (String s : History) {
                 bw.write(s);
+                bw.newLine();
             }
             bw.close();
         }catch (Exception e){
@@ -129,26 +107,71 @@ public class Slang {
         History.clear();
     }
     public void addForward(String key, ArrayList<String> definition) {
-        Forward.put(key, definition);
+        Dict.put(key, definition);
     }
-    public void addBackward(String key, ArrayList<String> definition) {
-        Backward.put(key, definition);
-    }
-    public void EditForward(String key, ArrayList<String> definition) {
-        Forward.replace(key, definition);
+
+    public HashMap<String,String> searchByDefinition(String definition) {
+        HashMap<String,String> result = new HashMap<>();
+        if(!definition.isEmpty()) {
+            for (Map.Entry<String, ArrayList<String>> entry : Dict.entrySet()) {
+                for (String s : entry.getValue()) {
+                    if(s.toUpperCase(Locale.ROOT).contains(definition.toUpperCase(Locale.ROOT))) {
+                        result.put(entry.getKey(), s);
+                    }
+                }
+            }
+        }
+        return result;
     }
     public ArrayList<String> searchByKey(String key) {
         ArrayList<String> result = new ArrayList<>();
-        if (Forward.containsKey(key)) {
-            result.add(key);
+        if(!key.isEmpty()) {
+            for (Map.Entry<String, ArrayList<String>> entry : Dict.entrySet()) {
+                //start with
+                if (entry.getKey().toUpperCase(Locale.ROOT).startsWith(key.toUpperCase(Locale.ROOT))) {
+                    result.add(entry.getKey());
+                }
+            }
         }
-        trie.Search(trie.getRoot(),key, result);
         return result;
     }
-    public ArrayList<String> searchByDefinition(String definition) {
-        HashSet<String> set = new HashSet<>();
-        for (String s : definition.split(" ")) {
+    public boolean AddWord(String key, String definition) {
+        if(Dict.containsKey(key)) {
+            return false;
         }
-        return new ArrayList<>(set);
+        Dict.put(key, new ArrayList<>(List.of(definition)));
+        SaveData("data.txt");
+        return true;
+    }
+    public void OverwriteWord(String key, String definition) {
+        Dict.get(key).clear();
+        Dict.get(key).add(definition);
+        SaveData("data.txt");
+    }
+    public void DuplicateWord(String key, String definition) {
+        Dict.get(key).add(definition);
+        SaveData("data.txt");
+    }
+
+    public void EditWord(String key, String definition) {
+        if(Dict.get(key).size() != 1) {
+            Dict.get(key).add(definition);
+        }
+        else {
+            Dict.get(key).set(0, definition);
+        }
+        SaveData("data.txt");
+    }
+    public void DeleteWord(String key, String definition) {
+        Dict.get(key).remove(definition);
+        if(Dict.get(key).isEmpty()) {
+            Dict.remove(key);
+        }
+        SaveData("data.txt");
+    }
+    public void ResetDict() {
+        Dict.clear();
+        LoadData("slang.txt");
+        SaveData("data.txt");
     }
 }

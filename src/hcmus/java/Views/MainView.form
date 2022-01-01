@@ -92,6 +92,7 @@
                       <component id="25d7e" class="javax.swing.JTable" binding="SlangTable">
                         <constraints/>
                         <properties>
+                          <autoCreateRowSorter value="false"/>
                           <cellSelectionEnabled value="false"/>
                           <columnSelectionAllowed value="false"/>
                           <dragEnabled value="false"/>
