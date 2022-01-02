@@ -3,13 +3,14 @@ package hcmus.java.Views;
 import hcmus.java.Slang;
 
 import javax.swing.*;
-import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Random;
 
 /**
  * hcmus.java
@@ -33,8 +34,16 @@ public class MainView extends JFrame {
     private JList History;
     private JList Suggestion;
     private JScrollPane SuggestPane;
+    private JButton SAVEButton;
+    private JPanel MeaningPane;
+    private JLabel SlangDay;
+    private JButton randomSlangButton;
+    private JLabel keyLabel;
+    private JPanel GuessMeaning;
     public static DefaultTableModel DataModel;
     public static DefaultTableModel SearchModelView;
+    public static String CorrectMeaning;
+    public static String CorrectSlang;
     public static MainView getInstance() {
         if (instance == null) {
             instance = new MainView();
@@ -43,11 +52,21 @@ public class MainView extends JFrame {
     }
 
     private MainView() {
-        //SuggestPane.setVisible(false);
+        //SLANG DICTIONARY
         createDataModel();
         CreateTableView();
         SlangTable.setModel(DataModel);
         createListHistory();
+
+        // SLANG ON THIS DAY
+        String key = Slang.getInstance().RandomKey();
+        createSlangDay(key, Slang.getInstance().getDict().get(key));
+
+        //SLANG GUESS MEANING
+        createGuessMeaning();
+
+
+
         searchButton.addActionListener(e -> {
             String search = SearchTextField.getText();
             String opt = (String) SearchOpt.getSelectedItem();
@@ -173,6 +192,14 @@ public class MainView extends JFrame {
                 revalidate();
             }
         });
+        SAVEButton.addActionListener(e ->  {
+            Slang.getInstance().SaveData("data.txt");
+            JOptionPane.showMessageDialog(null, "Save Successfully");
+        });
+        randomSlangButton.addActionListener(e -> {
+            String Word = Slang.getInstance().RandomKey();
+            createSlangDay(Word,Slang.getInstance().getDict().get(Word));
+        });
     }
 
     public void createAndShowGUI() {
@@ -231,6 +258,82 @@ public class MainView extends JFrame {
     public void UpdateListHistory(){
         Slang.getInstance().addHistory(SearchTextField.getText());
         History.setListData(Slang.getInstance().getHistory().toArray());
+    }
+    public void createSlangDay(String key,ArrayList<String> Meaning){
+        SlangDay.setText(key);
+        SlangDay.setFont(new Font("Arial", Font.BOLD, 45));
+        SlangDay.setForeground(Color.RED);
+        //clear MeaningPane
+        MeaningPane.removeAll();
+
+        MeaningPane.setLayout(new BoxLayout(MeaningPane, BoxLayout.Y_AXIS));
+        // margin
+        MeaningPane.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        // create label for meaning
+        for(int i = 0; i < Meaning.size(); i++){
+            JLabel label = new JLabel("☛ "+ Meaning.get(i)+".");
+            // dont set font but set font size
+            label.setFont(new Font("", Font.PLAIN, 20));
+            label.setForeground(Color.BLUE);
+            MeaningPane.add(label);
+        }
+    }
+    public void createGuessMeaning(){
+        keyLabel.setText(Slang.getInstance().RandomKey());
+        keyLabel.setFont(new Font("Arial", Font.BOLD, 55));
+        keyLabel.setForeground(Color.blue);
+        // create arraylist with 4 random element
+        ArrayList<String> Answer = new ArrayList<>();
+        Random random = new Random();
+        while (Answer.size() < 3){
+            String Meaning = Slang.getInstance().RandomDefinition();
+            if(!Answer.contains(Meaning)){
+                Answer.add(Meaning);
+            }
+        }
+        ArrayList<String> CorrectAnswer = Slang.getInstance().getDict().get(keyLabel.getText());
+        CorrectMeaning = CorrectAnswer.get(random.nextInt(CorrectAnswer.size()));
+        Answer.add(CorrectMeaning);
+        // clear GuessMeaningPane
+        GuessMeaning.removeAll();
+        // shuffle arraylist
+        Collections.shuffle(Answer);
+        // random answer and set to button
+        for(int i = 0; i < 4; i++){
+            // create button
+            JButton button = new JButton(Answer.get(i));
+            // set font
+            button.setFont(new Font("Arial", Font.PLAIN, 25));
+            if(Answer.get(i).length() > 40){
+                button.setFont(new Font("", Font.PLAIN, 15));
+            }
+            // set margin
+            button.setMargin(new Insets(10, 10, 10, 10));
+            // add action listener
+            button.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // get text from button
+                    String text = button.getText();
+                    // check if text is correct
+                    if(text.equals(CorrectMeaning)){
+                        // set color to green
+                        button.setBackground(Color.green);
+                        JOptionPane.showMessageDialog(null, "Correct!", "Congratulation", JOptionPane.INFORMATION_MESSAGE);
+                        // create new meaning
+                        createGuessMeaning();
+                    }else{
+                        // set color to red
+                        button.setBackground(Color.red);
+                        JOptionPane.showMessageDialog(null, "Wrong!", "Sorry", JOptionPane.INFORMATION_MESSAGE);
+                        createGuessMeaning();
+                    }
+                }
+            });
+            GuessMeaning.setLayout(new GridLayout(2, 2));
+            GuessMeaning.add(button);
+        }
+
     }
 
 }

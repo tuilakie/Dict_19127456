@@ -140,17 +140,14 @@ public class Slang {
             return false;
         }
         Dict.put(key, new ArrayList<>(List.of(definition)));
-        SaveData("data.txt");
         return true;
     }
     public void OverwriteWord(String key, String definition) {
         Dict.get(key).clear();
         Dict.get(key).add(definition);
-        SaveData("data.txt");
     }
     public void DuplicateWord(String key, String definition) {
         Dict.get(key).add(definition);
-        SaveData("data.txt");
     }
 
     public void EditWord(String key, String definition) {
@@ -167,11 +164,21 @@ public class Slang {
         if(Dict.get(key).isEmpty()) {
             Dict.remove(key);
         }
-        SaveData("data.txt");
     }
     public void ResetDict() {
         Dict.clear();
         LoadData("slang.txt");
-        SaveData("data.txt");
     }
+    public String RandomKey() {
+        //random key
+        Random r = new Random();
+        return Dict.keySet().toArray()[r.nextInt(Dict.keySet().toArray().length)].toString();
+    }
+    public String RandomDefinition() {
+        //random definition
+        Random r = new Random();
+        String key = RandomKey();
+        return Dict.get(key).toArray()[r.nextInt(Dict.get(key).toArray().length)].toString();
+    }
+
 }
