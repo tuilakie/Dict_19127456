@@ -3,9 +3,11 @@ package hcmus.java.Views;
 import hcmus.java.Slang;
 
 import javax.swing.*;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -29,6 +31,8 @@ public class MainView extends JFrame {
     private JButton EDITButton;
     private JButton RESETButton;
     private JList History;
+    private JList Suggestion;
+    private JScrollPane SuggestPane;
     public static DefaultTableModel DataModel;
     public static DefaultTableModel SearchModelView;
     public static MainView getInstance() {
@@ -39,6 +43,7 @@ public class MainView extends JFrame {
     }
 
     private MainView() {
+        //SuggestPane.setVisible(false);
         createDataModel();
         CreateTableView();
         SlangTable.setModel(DataModel);
@@ -61,7 +66,6 @@ public class MainView extends JFrame {
         });
 
         ADDButton.addActionListener(e -> {
-            // input dialog 2 textfield
             JTextField slang = new JTextField();
             JTextField def = new JTextField();
             JPanel panel = new JPanel(new GridLayout(0, 1));
@@ -74,32 +78,28 @@ public class MainView extends JFrame {
             int result = JOptionPane.showConfirmDialog(null, panel, "Add new Slang Word", JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
                 // if exist slang word in dictionary confirm dialog with 2 button overwrite or duplicate
-                if(!Slang.getInstance().AddWord(slang.getText(), def.getText())){
+                if (!Slang.getInstance().AddWord(slang.getText(), def.getText())) {
                     String[] options = {"Overwrite", "Duplicate"};
                     int n = JOptionPane.showOptionDialog(null, "Slang Word already exist, do you want to overwrite or duplicate?", "Warning",
                             JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-                    if(n == 0){
+                    if (n == 0) {
                         Slang.getInstance().OverwriteWord(slang.getText(), def.getText());
                         JOptionPane.showMessageDialog(null, "Overwrite Successfully");
-                    }
-                    else if(n == 1){
+                    } else if (n == 1) {
                         Slang.getInstance().DuplicateWord(slang.getText(), def.getText());
                         JOptionPane.showMessageDialog(null, "Duplicate Successfully");
                     }
                     SlangTable.setModel(DataModel);
-                }
-                else{
+                } else {
                     JOptionPane.showMessageDialog(null, "Add Successfully");
                 }
             }
         });
 
         DELETEButton.addActionListener(e -> {
-            System.out.println("DELETE");
-            if(SlangTable.getSelectedRow() == -1){
+            if (SlangTable.getSelectedRow() == -1) {
                 JOptionPane.showMessageDialog(null, "Please select a row to delete");
-            }
-            else{
+            } else {
                 Slang.getInstance().DeleteWord(SlangTable.getValueAt(SlangTable.getSelectedRow(), 0).toString(), SlangTable.getValueAt(SlangTable.getSelectedRow(), 1).toString());
                 JOptionPane.showMessageDialog(null, "Delete Successfully");
                 SlangTable.setModel(DataModel);
@@ -108,7 +108,7 @@ public class MainView extends JFrame {
         });
 
         EDITButton.addActionListener(e -> {
-            if(SlangTable.getSelectedRow() == -1){
+            if (SlangTable.getSelectedRow() == -1) {
                 JOptionPane.showMessageDialog(null, "Please select a row to edit");
                 return;
             }
@@ -135,6 +135,43 @@ public class MainView extends JFrame {
             Slang.getInstance().ResetDict();
             JOptionPane.showMessageDialog(null, "Reset Successfully");
             SlangTable.setModel(DataModel);
+        });
+        SearchTextField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                super.keyReleased(e);
+                if(!SearchOpt.getSelectedItem().toString().equals("Slang Word")){
+                    return;
+                }
+                String search = SearchTextField.getText();
+                if (search.length() == 0) {
+                    SlangTable.setModel(DataModel);
+                    Suggestion.setListData(new String[0]);
+                    Suggestion.setVisible(false);
+                    SuggestPane.setVisible(false);
+                } else {
+                    Suggestion.setListData(Slang.getInstance().searchByKey(search).toArray());
+                    Suggestion.addListSelectionListener(e1 -> {
+                        if (Suggestion.getSelectedValue() != null) {
+                            SearchTextField.setText(Suggestion.getSelectedValue().toString());
+                            Suggestion.setVisible(false);
+                            SuggestPane.setVisible(false);
+                            revalidate();
+                        }
+                    });
+                    SuggestPane.setVisible(true);
+                    Suggestion.setVisible(true);
+                }
+                revalidate();
+            }
+        });
+        SearchOpt.addActionListener(e -> {
+            if(!SearchOpt.getSelectedItem().toString().equals("Slang Word")){
+                Suggestion.setListData(new String[0]);
+                Suggestion.setVisible(false);
+                SuggestPane.setVisible(false);
+                revalidate();
+            }
         });
     }
 
@@ -172,13 +209,13 @@ public class MainView extends JFrame {
         SearchModelView = new DefaultTableModel();
         SearchModelView.setColumnIdentifiers(new String[]{"Slang Word", "Definition"});
         if(type.equals("Slang Word")){
-            ArrayList<String> data = Slang.getInstance().searchByKey(keyword);
-            for (String s : data) {
-                ArrayList<String> value = Slang.getInstance().getDict().get(s);
-                for (String s1 : value) {
-                    SearchModelView.addRow(new Object[]{s, s1});
+            if(Slang.getInstance().getDict().containsKey(keyword)){
+                ArrayList<String> value = Slang.getInstance().getDict().get(keyword);
+                for (String s : value) {
+                    SearchModelView.addRow(new Object[]{keyword, s});
                 }
             }
+
         }
         if (type.equals("Definition")){
            HashMap<String,String> data = Slang.getInstance().searchByDefinition(keyword);
@@ -195,4 +232,5 @@ public class MainView extends JFrame {
         Slang.getInstance().addHistory(SearchTextField.getText());
         History.setListData(Slang.getInstance().getHistory().toArray());
     }
+
 }
