@@ -40,6 +40,8 @@ public class MainView extends JFrame {
     private JButton randomSlangButton;
     private JLabel keyLabel;
     private JPanel GuessMeaning;
+    private JPanel GuessSlang;
+    private JLabel MeaningLabel;
     public static DefaultTableModel DataModel;
     public static DefaultTableModel SearchModelView;
     public static String CorrectMeaning;
@@ -65,7 +67,8 @@ public class MainView extends JFrame {
         //SLANG GUESS MEANING
         createGuessMeaning();
 
-
+        //SLANG GUESS SLANG
+        createGuessSlang();
 
         searchButton.addActionListener(e -> {
             String search = SearchTextField.getText();
@@ -74,7 +77,9 @@ public class MainView extends JFrame {
                 createSearchModelView(search, opt);
                 SlangTable.setModel(SearchModelView);
                 UpdateListHistory();
-                //show dialog count result line
+                Suggestion.setVisible(false);
+                SuggestPane.setVisible(false);
+                revalidate();
                 JOptionPane.showMessageDialog(null, "Found " + SearchModelView.getRowCount() + " results");
             }
         });
@@ -296,6 +301,7 @@ public class MainView extends JFrame {
         Answer.add(CorrectMeaning);
         // clear GuessMeaningPane
         GuessMeaning.removeAll();
+        GuessMeaning.setLayout(new GridLayout(2, 2));
         // shuffle arraylist
         Collections.shuffle(Answer);
         // random answer and set to button
@@ -330,10 +336,64 @@ public class MainView extends JFrame {
                     }
                 }
             });
-            GuessMeaning.setLayout(new GridLayout(2, 2));
             GuessMeaning.add(button);
         }
-
+    }
+    public void createGuessSlang(){
+        CorrectSlang = Slang.getInstance().RandomKey();
+        Random random = new Random();
+        String Meaning = Slang.getInstance().getDict().get(CorrectSlang).get(random.nextInt(Slang.getInstance().getDict().get(CorrectSlang).size()));
+        MeaningLabel.setText(Meaning);
+        MeaningLabel.setFont(new Font("Arial", Font.BOLD, 55));
+        MeaningLabel.setForeground(Color.blue);
+        if(Meaning.length() > 40){
+            MeaningLabel.setFont(new Font("", Font.PLAIN, 35));
+        }
+        // clear GuessSlangPane
+        GuessSlang.removeAll();
+        GuessSlang.setLayout(new GridLayout(2, 2));
+        // create arraylist with 4 random element
+        ArrayList<String> Answer = new ArrayList<>();
+        while (Answer.size() < 3){
+            String key = Slang.getInstance().RandomKey();
+            if(!Answer.contains(key)){
+                Answer.add(key);
+            }
+        }
+        Answer.add(CorrectSlang);
+        // shuffle arraylist
+        Collections.shuffle(Answer);
+        // random answer and set to button
+        for(int i = 0; i < 4; i++){
+            // create button
+            JButton button = new JButton(Answer.get(i));
+            // set font
+            button.setFont(new Font("Arial", Font.PLAIN, 25));
+            // set margin
+            button.setMargin(new Insets(10, 10, 10, 10));
+            // add action listener
+            button.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // get text from button
+                    String text = button.getText();
+                    // check if text is correct
+                    if(text.equals(CorrectSlang)){
+                        // set color to green
+                        button.setBackground(Color.green);
+                        JOptionPane.showMessageDialog(null, "Correct!", "Congratulation", JOptionPane.INFORMATION_MESSAGE);
+                        // create new meaning
+                        createGuessSlang();
+                    }else{
+                        // set color to red
+                        button.setBackground(Color.red);
+                        JOptionPane.showMessageDialog(null, "Wrong!", "Sorry", JOptionPane.INFORMATION_MESSAGE);
+                        createGuessSlang();
+                    }
+                }
+            });
+            GuessSlang.add(button);
+        }
     }
 
 }

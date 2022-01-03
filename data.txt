@@ -2360,7 +2360,7 @@ EOL`End Of Lecture
 EOS`End Of Show
 EOR`End Of Rant
 W2F`Way Too Funny
-EOT`End Of Thread |end of discussion
+EOT`End Of Thread| end of discussion
 EOW`End Of Watch
 W2G`Way To Go
 CYPH`To Share A Smoke
