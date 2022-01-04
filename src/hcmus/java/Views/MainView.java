@@ -393,6 +393,7 @@ public class MainView extends JFrame {
                 }
             });
             GuessSlang.add(button);
+
         }
     }
 
