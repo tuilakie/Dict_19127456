@@ -247,7 +247,6 @@ public class MainView extends JFrame {
                     SearchModelView.addRow(new Object[]{keyword, s});
                 }
             }
-
         }
         if (type.equals("Definition")){
            HashMap<String,String> data = Slang.getInstance().searchByDefinition(keyword);
