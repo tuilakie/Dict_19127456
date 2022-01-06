@@ -106,9 +106,6 @@ public class Slang {
     public void clearHistory() {
         History.clear();
     }
-    public void addForward(String key, ArrayList<String> definition) {
-        Dict.put(key, definition);
-    }
 
     public HashMap<String,String> searchByDefinition(String definition) {
         HashMap<String,String> result = new HashMap<>();
@@ -140,23 +137,33 @@ public class Slang {
             return false;
         }
         Dict.put(key, new ArrayList<>(List.of(definition)));
+        SaveData("data.txt");
         return true;
     }
     public void OverwriteWord(String key, String definition) {
         Dict.get(key).clear();
         Dict.get(key).add(definition);
+        SaveData("data.txt");
+
     }
     public void DuplicateWord(String key, String definition) {
         Dict.get(key).add(definition);
+        SaveData("data.txt");
     }
 
-    public void EditWord(String key, String definition) {
-        if(Dict.get(key).size() != 1) {
-            Dict.get(key).add(definition);
+    public void EditWord(String oldKey, String oldDefinition, String newKey, String newDefinition) {
+        Dict.get(oldKey).remove(oldDefinition);
+        if(Dict.containsKey(newKey)) {
+            Dict.get(newKey).add(newDefinition);
         }
         else {
-            Dict.get(key).set(0, definition);
+            Dict.put(newKey, new ArrayList<>(List.of(newDefinition)));
         }
+        //remove old key
+        if(Dict.get(oldKey).isEmpty()) {
+            Dict.remove(oldKey);
+        }
+        //save data
         SaveData("data.txt");
     }
     public void DeleteWord(String key, String definition) {
@@ -164,10 +171,13 @@ public class Slang {
         if(Dict.get(key).isEmpty()) {
             Dict.remove(key);
         }
+        //save data
+        SaveData("data.txt");
     }
     public void ResetDict() {
         Dict.clear();
         LoadData("slang.txt");
+        SaveData("data.txt");
     }
     public String RandomKey() {
         //random key

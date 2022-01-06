@@ -1292,7 +1292,7 @@ CHEERIO`Goodbye
 NO WORRIES`OK, no problem
 UHM`UH| UM
 UHQ`Ultra High Quality
-AA`Alcoholics Anonymous| African-American
+AA`Alcoholics Anonymous| African-American| Automobile Association
 UHT`Ultra High Temperature
 THUG`Violent criminal| Person struggling to make something of their life
 AC`Air Conditioning| Alternating Current
@@ -1933,6 +1933,7 @@ RP`Role Play
 HTSYS`Hope To See You Soon
 RQ`Random Questions
 S2`Love
+AARP`American Association of Retired Persons
 MUDSHARK`White woman dating black men
 RR`Restroom
 RS`RuneScape
@@ -2360,7 +2361,7 @@ EOL`End Of Lecture
 EOS`End Of Show
 EOR`End Of Rant
 W2F`Way Too Funny
-EOT`End Of Thread| end of discussion
+EOT`End Of Thread |end of discussion
 EOW`End Of Watch
 W2G`Way To Go
 CYPH`To Share A Smoke

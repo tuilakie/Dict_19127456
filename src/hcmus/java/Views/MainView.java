@@ -85,6 +85,7 @@ public class MainView extends JFrame {
         });
 
         refreshButton.addActionListener(e -> {
+            createDataModel();
             SlangTable.setModel(DataModel);
             JOptionPane.showMessageDialog(null, "Refresh Successfully");
         });
@@ -113,6 +114,7 @@ public class MainView extends JFrame {
                         Slang.getInstance().DuplicateWord(slang.getText(), def.getText());
                         JOptionPane.showMessageDialog(null, "Duplicate Successfully");
                     }
+                    createDataModel();
                     SlangTable.setModel(DataModel);
                 } else {
                     JOptionPane.showMessageDialog(null, "Add Successfully");
@@ -124,11 +126,18 @@ public class MainView extends JFrame {
             if (SlangTable.getSelectedRow() == -1) {
                 JOptionPane.showMessageDialog(null, "Please select a row to delete");
             } else {
-                Slang.getInstance().DeleteWord(SlangTable.getValueAt(SlangTable.getSelectedRow(), 0).toString(), SlangTable.getValueAt(SlangTable.getSelectedRow(), 1).toString());
-                JOptionPane.showMessageDialog(null, "Delete Successfully");
-                SlangTable.setModel(DataModel);
+                //show confirm dialog
+                int result = JOptionPane.showConfirmDialog(null, "Are you sure to delete " + SlangTable.getValueAt(SlangTable.getSelectedRow(),0) + " ?", "Warning", JOptionPane.YES_NO_OPTION);
+                if (result == JOptionPane.YES_OPTION) {
+                    Slang.getInstance().DeleteWord(SlangTable.getValueAt(SlangTable.getSelectedRow(), 0).toString(), SlangTable.getValueAt(SlangTable.getSelectedRow(), 1).toString());
+                    JOptionPane.showMessageDialog(null, "Delete Successfully");
+                    createDataModel();
+                    SlangTable.setModel(DataModel);
+                }
+                else {
+                    JOptionPane.showMessageDialog(null, "Delete Cancelled");
+                }
             }
-
         });
 
         EDITButton.addActionListener(e -> {
@@ -136,11 +145,14 @@ public class MainView extends JFrame {
                 JOptionPane.showMessageDialog(null, "Please select a row to edit");
                 return;
             }
+            String oldSlang = SlangTable.getValueAt(SlangTable.getSelectedRow(), 0).toString();
+            String oldDef = SlangTable.getValueAt(SlangTable.getSelectedRow(), 1).toString();
             // input dialog 2 textfield
             JTextField slang = new JTextField();
             JTextField def = new JTextField();
             slang.setText(SlangTable.getValueAt(SlangTable.getSelectedRow(), 0).toString());
             def.setText(SlangTable.getValueAt(SlangTable.getSelectedRow(), 1).toString());
+//            slang.setEditable(false);
             JPanel panel = new JPanel(new GridLayout(0, 1));
             panel.add(new JLabel("Slang Word:"));
             panel.add(slang);
@@ -149,7 +161,8 @@ public class MainView extends JFrame {
             panel.setPreferredSize(new Dimension(450, 120));
             int result = JOptionPane.showConfirmDialog(null, panel, "Edit Slang Word", JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
-                Slang.getInstance().EditWord(slang.getText(), def.getText());
+                Slang.getInstance().EditWord(oldSlang, oldDef, slang.getText(), def.getText());
+                createDataModel();
                 SlangTable.setModel(DataModel);
                 JOptionPane.showMessageDialog(null, "Edit Successfully");
             }
@@ -158,6 +171,7 @@ public class MainView extends JFrame {
         RESETButton.addActionListener(e -> {
             Slang.getInstance().ResetDict();
             JOptionPane.showMessageDialog(null, "Reset Successfully");
+            createDataModel();
             SlangTable.setModel(DataModel);
         });
         SearchTextField.addKeyListener(new KeyAdapter() {
@@ -169,7 +183,6 @@ public class MainView extends JFrame {
                 }
                 String search = SearchTextField.getText();
                 if (search.length() == 0) {
-                    SlangTable.setModel(DataModel);
                     Suggestion.setListData(new String[0]);
                     Suggestion.setVisible(false);
                     SuggestPane.setVisible(false);
@@ -196,10 +209,6 @@ public class MainView extends JFrame {
                 SuggestPane.setVisible(false);
                 revalidate();
             }
-        });
-        SAVEButton.addActionListener(e ->  {
-            Slang.getInstance().SaveData("data.txt");
-            JOptionPane.showMessageDialog(null, "Save Successfully");
         });
         randomSlangButton.addActionListener(e -> {
             String Word = Slang.getInstance().RandomKey();
